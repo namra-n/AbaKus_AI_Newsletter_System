@@ -16,7 +16,7 @@ Both use the same MOCK_MODE / live-LLM split as llm_pipeline.py.
 import json
 import re
 
-from config import ANTHROPIC_API_KEY, LLM_MODEL, MOCK_MODE
+from config import MOCK_MODE
 
 # A rotating pool the "Tool of the Week" picks from when running in mock
 # mode, or as a candidate list the live LLM call can choose/write about.

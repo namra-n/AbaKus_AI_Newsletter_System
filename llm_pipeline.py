@@ -8,18 +8,20 @@ The content-selection brain of the system. For every candidate article:
   4. Tag with 0+ interest segments (Finance, Consulting, Marketing, ...)
 
 All four steps happen in a single batched LLM call per article batch to
-keep API cost and latency low. If no ANTHROPIC_API_KEY is configured
+keep API cost and latency low. If no GEMINI_API_KEY is configured
 (MOCK_MODE), a deterministic offline heuristic stands in, so the rest of
 the pipeline (formatting, delivery, automation) can be built and tested
-without burning API credits.
+without spending API quota.
 """
 
 import json
 import re
 
+import requests
+
 from config import (
-    ANTHROPIC_API_KEY,
-    LLM_MODEL,
+    GEMINI_API_KEY,
+    GEMINI_API_URL,
     MOCK_MODE,
     RELEVANCE_THRESHOLD,
     INTEREST_SEGMENTS,
@@ -63,22 +65,30 @@ def _composite_score(scores: dict) -> float:
 
 
 # ---------------------------------------------------------------------------
-# Live path (real Anthropic API call)
+# Live path (real Gemini API call, free tier)
 # ---------------------------------------------------------------------------
 def _call_llm(articles: list[dict]) -> list[dict]:
-    import anthropic
-
-    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
     payload = [{"id": a["id"], "title": a["title"], "summary": a["raw_summary"]} for a in articles]
 
-    response = client.messages.create(
-        model=LLM_MODEL,
-        max_tokens=4000,
-        system=SYSTEM_PROMPT,
-        messages=[{"role": "user", "content": json.dumps(payload)}],
+    body = {
+        "system_instruction": {"parts": [{"text": SYSTEM_PROMPT}]},
+        "contents": [{"role": "user", "parts": [{"text": json.dumps(payload)}]}],
+        # Forces the model to return valid JSON directly — no markdown
+        # fences to strip, no "here is the JSON:" preamble to parse around.
+        "generationConfig": {"response_mime_type": "application/json"},
+    }
+
+    resp = requests.post(
+        GEMINI_API_URL,
+        headers={"Content-Type": "application/json", "x-goog-api-key": GEMINI_API_KEY},
+        json=body,
+        timeout=60,
     )
-    text = response.content[0].text.strip()
-    text = re.sub(r"^```json\s*|\s*```$", "", text.strip())
+    resp.raise_for_status()
+    data = resp.json()
+
+    text = data["candidates"][0]["content"]["parts"][0]["text"].strip()
+    text = re.sub(r"^```json\s*|\s*```$", "", text)
     return json.loads(text)
 
 
@@ -162,8 +172,18 @@ def score_and_summarize(articles: list[dict], batch_size: int = 15) -> list[dict
     else:
         for i in range(0, len(articles), batch_size):
             batch = articles[i:i + batch_size]
-            for r in _call_llm(batch):
-                results_by_id[r["id"]] = r
+            try:
+                for r in _call_llm(batch):
+                    results_by_id[r["id"]] = r
+            except Exception as exc:  # noqa: BLE001
+                # Billing issues, rate limits, or transient API outages
+                # shouldn't take down the whole run — degrade to the
+                # offline heuristic for this batch so subscribers still
+                # get an issue, and surface the problem loudly in logs.
+                print(f"[llm_pipeline] WARNING: live LLM call failed ({exc}); "
+                      f"falling back to offline scoring for this batch.")
+                for a in batch:
+                    results_by_id[a["id"]] = _mock_score_and_summarize(a)
 
     enriched = []
     for a in articles:

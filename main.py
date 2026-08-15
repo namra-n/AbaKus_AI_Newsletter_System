@@ -5,7 +5,7 @@ Orchestrates the full weekly run:
   -> format -> send -> log to send history
 
 Run with:  python main.py
-Env vars (see README): ANTHROPIC_API_KEY, SMTP_USER, SMTP_PASSWORD, ...
+Env vars (see README): GEMINI_API_KEY, SMTP_USER, SMTP_PASSWORD, ...
 """
 
 import json

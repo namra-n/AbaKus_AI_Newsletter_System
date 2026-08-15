@@ -38,15 +38,21 @@ RELEVANCE_THRESHOLD = 6.0
 MAX_ARTICLES_PER_ISSUE = 8
 
 # ---------------------------------------------------------------------------
-# LLM
+# LLM (Google Gemini — free tier, no credit card required)
 # ---------------------------------------------------------------------------
-ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
-LLM_MODEL = "claude-sonnet-4-6"
+# Get a key at https://aistudio.google.com/apikey — takes under a minute,
+# no billing setup needed for the free tier.
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+# Overridable so the API call path can be pointed at a local mock server
+# for testing without spending real quota.
+GEMINI_API_BASE = os.environ.get("GEMINI_API_BASE", "https://generativelanguage.googleapis.com/v1beta")
+GEMINI_API_URL = f"{GEMINI_API_BASE}/models/{GEMINI_MODEL}:generateContent"
 
 # If no API key is present (e.g. running a local demo), the pipeline falls
 # back to a deterministic offline heuristic so the rest of the system can
-# still be exercised end-to-end without network access or billing.
-MOCK_MODE = ANTHROPIC_API_KEY is None
+# still be exercised end-to-end without network access or an API key.
+MOCK_MODE = GEMINI_API_KEY is None
 
 # ---------------------------------------------------------------------------
 # Storage (subscriber list + send history)
