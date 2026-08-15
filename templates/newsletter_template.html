@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ title }}</title>
+</head>
+<body style="margin:0; padding:0; background-color:#f4f3ef; font-family:Georgia, 'Times New Roman', serif; color:#2c2c2a;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f3ef; padding:24px 0;">
+<tr><td align="center">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff; border-radius:8px; overflow:hidden;">
+
+  <!-- Header -->
+  <tr><td style="background-color:#26215C; padding:28px 32px;">
+    <div style="font-family:Arial, sans-serif; font-size:12px; letter-spacing:1px; color:#AFA9EC; text-transform:uppercase;">{{ club_name }}</div>
+    <div style="font-family:Arial, sans-serif; font-size:24px; font-weight:bold; color:#ffffff; margin-top:6px;">{{ title }}</div>
+    <div style="font-family:Arial, sans-serif; font-size:13px; color:#CECBF6; margin-top:4px;">{{ issue_date }} · curated for {{ subscriber_name }}</div>
+  </td></tr>
+
+  <!-- Intro -->
+  <tr><td style="padding:24px 32px 8px;">
+    <p style="font-size:14px; line-height:1.6; color:#444441; font-family:Arial, sans-serif;">
+      {{ article_count }} stories this week, filtered and scored for relevance to your interests
+      ({{ interests }}). Roughly a {{ read_time }}-minute read.
+    </p>
+  </td></tr>
+
+  <!-- Articles -->
+  {% for article in articles %}
+  <tr><td style="padding:16px 32px; border-top:1px solid #e5e3da;">
+    <div style="font-family:Arial, sans-serif; font-size:11px; color:#888780; text-transform:uppercase; letter-spacing:0.5px;">{{ article.source }}{% if article.tags %} · {{ article.tags | join(', ') }}{% endif %}</div>
+    <a href="{{ article.link }}" style="font-family:Arial, sans-serif; font-size:17px; font-weight:bold; color:#26215C; text-decoration:none; line-height:1.4;">{{ article.title }}</a>
+    <p style="font-size:14px; line-height:1.6; color:#3d3d3a; margin:8px 0 6px; font-family:Arial, sans-serif;">{{ article.what_happened }}</p>
+    <p style="font-size:13px; line-height:1.5; color:#3C3489; background-color:#EEEDFE; padding:10px 12px; border-radius:6px; margin:6px 0; font-family:Arial, sans-serif;">
+      <strong>Why it matters for MBAs:</strong> {{ article.why_mba_should_care }}
+    </p>
+    {% if article.key_number %}
+    <p style="font-size:12px; color:#5F5E5A; font-family:Arial, sans-serif;">📊 Key number: {{ article.key_number }}</p>
+    {% endif %}
+  </td></tr>
+  {% endfor %}
+
+  <!-- AI Tool of the Week -->
+  {% if tool_of_week %}
+  <tr><td style="padding:20px 32px; background-color:#E1F5EE; border-top:2px solid #9FE1CB;">
+    <div style="font-family:Arial, sans-serif; font-size:12px; font-weight:bold; color:#085041; text-transform:uppercase; letter-spacing:0.5px;">🛠 AI Tool of the Week</div>
+    <div style="font-family:Arial, sans-serif; font-size:16px; font-weight:bold; color:#04342C; margin-top:4px;">{{ tool_of_week.name }} — {{ tool_of_week.category }}</div>
+    <p style="font-size:14px; line-height:1.6; color:#0F6E56; margin-top:6px; font-family:Arial, sans-serif;">{{ tool_of_week.blurb }}</p>
+  </td></tr>
+  {% endif %}
+
+  <!-- Startup Spotlight -->
+  {% if startup_spotlight %}
+  <tr><td style="padding:20px 32px; background-color:#FAECE7; border-top:2px solid #F0997B;">
+    <div style="font-family:Arial, sans-serif; font-size:12px; font-weight:bold; color:#712B13; text-transform:uppercase; letter-spacing:0.5px;">🚀 Startup Spotlight</div>
+    <a href="{{ startup_spotlight.link }}" style="font-family:Arial, sans-serif; font-size:16px; font-weight:bold; color:#4A1B0C; text-decoration:none;">{{ startup_spotlight.title }}</a>
+    <p style="font-size:14px; line-height:1.6; color:#712B13; margin-top:6px; font-family:Arial, sans-serif;">{{ startup_spotlight.blurb }}</p>
+  </td></tr>
+  {% endif %}
+
+  <!-- Feedback -->
+  <tr><td style="padding:20px 32px; border-top:1px solid #e5e3da;">
+    <p style="font-family:Arial, sans-serif; font-size:13px; color:#5F5E5A;">
+      Was this issue useful?
+      <a href="{{ feedback_up_url }}" style="color:#0F6E56; text-decoration:none; font-weight:bold;">&#128077; Yes</a>
+      &nbsp;&nbsp;
+      <a href="{{ feedback_down_url }}" style="color:#993C1D; text-decoration:none; font-weight:bold;">&#128078; Not really</a>
+    </p>
+  </td></tr>
+
+  <!-- Footer -->
+  <tr><td style="padding:20px 32px; background-color:#f4f3ef;">
+    <p style="font-family:Arial, sans-serif; font-size:11px; color:#888780; line-height:1.6;">
+      Sent by {{ club_name }}. You're receiving this because you subscribed with interests:
+      {{ interests }}. <a href="{{ unsubscribe_url }}" style="color:#888780;">Unsubscribe</a> ·
+      <a href="{{ preferences_url }}" style="color:#888780;">Update preferences</a>
+    </p>
+  </td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>
