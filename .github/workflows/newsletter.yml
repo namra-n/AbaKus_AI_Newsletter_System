@@ -6,6 +6,9 @@ on:
     - cron: "0 5 * * 1"
   workflow_dispatch: {}   # allows manual "Run workflow" trigger for testing
 
+permissions:
+  contents: write   # needed so the bot can commit updated send_history.json  
+
 jobs:
   send-newsletter:
     runs-on: ubuntu-latest
